@@ -284,7 +284,7 @@
       document.getElementById("download-pdf").style.display = "block";
     }
 
-  async function telechargerPDF() {
+async function telechargerPDF() {
   if (!dernierDevis) {
     alert("Veuillez d'abord calculer le prix.");
     return;
@@ -292,45 +292,39 @@
 
   const doc = new jsPDF();
 
+  // Couleurs
   const bleuAlticonception = "#2980b9";
   const grisClair = "#f4f6f8";
   const noir = "#2c3e50";
 
-  // Chargement du logo en base64 pour l'ajouter au PDF (logo externe converti en base64)
-  // Pour cela, on va faire une requête fetch sur l'URL du logo et convertir en base64.
-  async function getImageBase64(url) {
-    const res = await fetch(url);
-    const blob = await res.blob();
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onloadend = () => resolve(reader.result);
-      reader.onerror = reject;
-      reader.readAsDataURL(blob);
-    });
-  }
-
-  const logoUrl = "https://raw.githubusercontent.com/clem141100/TARIFS-ALTICONCEPTION/main/logo1.png";
-  const logoBase64 = await getImageBase64(logoUrl);
+  // Charger le logo en base64
+  const logoBase64 = await getImageBase64("https://raw.githubusercontent.com/clem141100/TARIFS-ALTICONCEPTION/main/logo1.png");
 
   // En-tête avec fond bleu
   doc.setFillColor(41, 128, 185);
-  doc.rect(0, 0, 210, 50, "F"); // un peu plus haut pour mettre le texte et logo
+  doc.rect(0, 0, 210, 40, "F");
 
-  // Logo (on va le mettre en haut à gauche, taille conservée)
-  const logoWidth = 50;
-  const logoHeight = 18; // proportionnel (environ)
-  doc.addImage(logoBase64, "PNG", 15, 10, logoWidth, logoHeight);
+  // Calcul de la taille du logo en conservant le ratio
+  const imgProps = doc.getImageProperties(logoBase64);
+  const maxLogoWidth = 50; // mm
+  const logoWidth = maxLogoWidth;
+  const logoHeight = (imgProps.height * maxLogoWidth) / imgProps.width;
 
-  // Titre ALTICONCEPTION centré
+  // Ajouter le logo
+  doc.addImage(logoBase64, 'PNG', 15, 5, logoWidth, logoHeight);
+
+  // Texte ALTICONCEPTION à droite, verticalement centré sur le logo
+  doc.setFont("helvetica", "bold");
   doc.setFontSize(22);
   doc.setTextColor(255, 255, 255);
-  doc.setFont("helvetica", "bold");
-  doc.text("ALTICONCEPTION", 105, 20, null, null, "center");
+  const textX = 15 + logoWidth + 10;
+  const textY = 5 + logoHeight / 2 + 7; // Ajuster pour centrage vertical
+  doc.text("ALTICONCEPTION", textX, textY);
 
-  // Infos supplémentaires sous le titre
-  doc.setFontSize(8);
+  // Infos contact en dessous du titre
   doc.setFont("helvetica", "normal");
-  const infos = [
+  doc.setFontSize(9);
+  const infosContact = [
     "BY NOVA COM",
     "21 RUE DE LA SALAISON",
     "43290 RAUCOULES",
