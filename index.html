@@ -284,146 +284,95 @@
       document.getElementById("download-pdf").style.display = "block";
     }
 
-    async function telechargerPDF() {
-  if (!dernierDevis) {
-    alert("Veuillez d'abord calculer le prix.");
-    return;
-  }
+    function telechargerPDF() {
+      if (!dernierDevis) {
+        alert("Veuillez d'abord calculer le prix.");
+        return;
+      }
 
-  const doc = new jsPDF();
+      const doc = new jsPDF();
 
-  // Couleur bleu-vert
-  const bleuVert = "#2a9d8f";
-  const grisClair = "#f4f6f8";
-  const noir = "#2c3e50";
+      const bleuAlticonception = "#2980b9";
+      const grisClair = "#f4f6f8";
+      const noir = "#2c3e50";
 
-  // Charger le logo en base64
-  const logoBase64 = await getImageBase64("https://raw.githubusercontent.com/clem141100/TARIFS-ALTICONCEPTION/main/logo1.png");
+      // En-tête avec fond bleu
+      doc.setFillColor(41, 128, 185);
+      doc.rect(0, 0, 210, 35, "F");
 
-  // Calcul des dimensions du logo pour garder les proportions
-  const imgProps = doc.getImageProperties(logoBase64);
-  const maxLogoWidth = 50; // mm
-  const logoWidth = maxLogoWidth;
-  const logoHeight = (imgProps.height * maxLogoWidth) / imgProps.width;
+      doc.setFontSize(20);
+      doc.setTextColor(255, 255, 255);
+      doc.setFont("helvetica", "bold");
+      doc.text("ALTICONCEPTION", 105, 22, null, null, "center");
 
-  // --- En-tête ---
+      // Infos devis & client
+      doc.setFontSize(8);
+      doc.setTextColor(noir);
+      doc.setFont("helvetica", "normal");
+      doc.text(`Devis n° : ${dernierDevis.numeroDevis}`, 15, 50);
+      doc.text(`Date : ${dernierDevis.dateDevis.toLocaleDateString("fr-FR")}`, 150, 50);
+      doc.text(`Client : ${dernierDevis.clientName}`, 15, 60);
 
-  // Zone blanche en haut (fond par défaut)
-  doc.setFillColor(255, 255, 255);
-  doc.rect(0, 0, 210, 60, "F");
+      if (dernierDevis.clientEmail) {
+        doc.text(`Email : ${dernierDevis.clientEmail}`, 15, 68);
+      }
+      if (dernierDevis.clientPhone) {
+        doc.text(`Téléphone : ${dernierDevis.clientPhone}`, 15, 76);
+      }
 
-  // Ajouter le logo en haut à gauche (marge 15 mm à gauche et 10 mm du haut)
-  const logoX = 15;
-  const logoY = 10;
-  doc.addImage(logoBase64, "PNG", logoX, logoY, logoWidth, logoHeight);
+      // Ligne séparatrice
+      let baseY = 80;
+      if (dernierDevis.clientPhone) {
+        baseY = 85;
+      } else if (dernierDevis.clientEmail) {
+        baseY = 82;
+      }
+      doc.setDrawColor(41, 128, 185);
+      doc.setLineWidth(0.8);
+      doc.line(15, baseY, 195, baseY);
 
-  // Ajouter texte ALTICONCEPTION en haut à droite, centré verticalement par rapport au logo
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(24);
-  doc.setTextColor(bleuVert);
-  const alticonceptionX = 120;
-  const alticonceptionY = logoY + logoHeight / 2 + 8; // ajusté pour centrage vertical
-  doc.text("ALTICONCEPTION", alticonceptionX, alticonceptionY);
+      // Détail de la commande (tableau)
+      doc.setFontSize(9);
+      doc.setTextColor(bleuAlticonception);
+      doc.setFont("helvetica", "bold");
+      doc.text("Détail de la commande", 15, baseY + 10);
 
-  // Ajouter infos contact sous le logo, avec petite marge
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(9);
-  doc.setTextColor(noir);
-  const infosX = logoX;
-  let infosY = logoY + logoHeight + 6;
+      const startY = baseY + 18;  // augmenté un peu pour espace
+      const rowHeight = 10;
 
-  const infosContact = [
-    "- BY NOVA COM",
-    "21 RUE DE LA SALAISON",
-    "43290 RAUCOULES",
-    "FRANCE",
-    "Tel : +33 7 79 82 42 02",
-    "Port. : +33 6 19 63 63 52",
-    "contact@alticonception-pro.fr",
-    "N° TVA Intracommunautaire : FR24928396316",
-    "N° SIRET : 92839631600012"
-  ];
+      // Entête tableau - colonnes espacées pour éviter chevauchement
+      doc.setFillColor(grisClair);
+      doc.rect(15, startY - 8, 180, rowHeight, "F");
+      doc.setTextColor(noir);
+      doc.setFont("helvetica", "bold");
+      doc.text("Article", 20, startY);
+      doc.text("Qté", 110, startY);
+      doc.text("Prix Unitaire HT (€)", 140, startY);
+      doc.text("Total HT (€)", 195, startY, null, null, "right");
 
-  infosContact.forEach(line => {
-    doc.text(line, infosX, infosY);
-    infosY += 5;
-  });
+      // Ligne de données
+      doc.setFont("helvetica", "normal");
+      const articleText = dernierDevis.articleNom + (dernierDevis.marquagesNoms.length > 0 ? " + " + dernierDevis.marquagesNoms.join(", ") : "");
+      doc.text(articleText, 20, startY + rowHeight);
+      doc.text(String(dernierDevis.quantite), 110, startY + rowHeight);
+      doc.text(dernierDevis.prixUnitaireHT.toFixed(2), 170, startY + rowHeight, null, null, "right");
+      doc.text(dernierDevis.totalHT.toFixed(2), 195, startY + rowHeight, null, null, "right");
 
-  // --- Section Devis & Client ---
-  const baseY = infosY + 12; // un peu d'espace après infos contact
+      // Totaux
+      let currentY = startY + rowHeight + 15;
+      doc.setFont("helvetica", "bold");
+      doc.text(`TVA (20%) :`, 150, currentY);
+      doc.text(dernierDevis.totalTVA.toFixed(2), 195, currentY, null, null, "right");
+      currentY += 8;
+      doc.text(`Total TTC :`, 150, currentY);
+      doc.text(dernierDevis.totalTTC.toFixed(2), 195, currentY, null, null, "right");
 
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(14);
-  doc.setTextColor(bleuVert);
-  doc.text(`Devis n° : ${dernierDevis.numeroDevis}`, 15, baseY);
+      // Pied de page ALTICONCEPTION
+      doc.setFontSize(10);
+      doc.setTextColor("gray");
+      doc.text("ALTICONCEPTION - www.alticonception.fr - contact@alticonception.fr", 105, 285, null, null, "center");
 
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(10);
-  doc.setTextColor(noir);
-
-  doc.text(`Date : ${dernierDevis.dateDevis.toLocaleDateString("fr-FR")}`, 150, baseY);
-  doc.text(`Client : ${dernierDevis.clientName}`, 15, baseY + 8);
-
-  if (dernierDevis.clientEmail) {
-    doc.text(`Email : ${dernierDevis.clientEmail}`, 15, baseY + 16);
-  }
-  if (dernierDevis.clientPhone) {
-    doc.text(`Téléphone : ${dernierDevis.clientPhone}`, 15, baseY + 24);
-  }
-
-  // Ligne séparatrice sous les infos client
-  let lineY = baseY + 32;
-  if (!dernierDevis.clientPhone && dernierDevis.clientEmail) lineY -= 8;
-  else if (!dernierDevis.clientEmail && !dernierDevis.clientPhone) lineY -= 16;
-
-  doc.setDrawColor(42, 157, 143); // bleu-vert
-  doc.setLineWidth(0.8);
-  doc.line(15, lineY, 195, lineY);
-
-  // --- Détail de la commande ---
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(12);
-  doc.setTextColor(bleuVert);
-  doc.text("Détail de la commande", 15, lineY + 12);
-
-  const tableStartY = lineY + 18;
-  const rowHeight = 10;
-
-  // Entête du tableau
-  doc.setFillColor(grisClair);
-  doc.rect(15, tableStartY - 8, 180, rowHeight, "F");
-
-  doc.setFontSize(10);
-  doc.setTextColor(noir);
-  doc.text("Article", 20, tableStartY);
-  doc.text("Qté", 110, tableStartY);
-  doc.text("Prix Unitaire HT (€)", 140, tableStartY);
-  doc.text("Total HT (€)", 195, tableStartY, null, null, "right");
-
-  // Ligne données
-  doc.setFont("helvetica", "normal");
-  const articleText = dernierDevis.articleNom + (dernierDevis.marquagesNoms.length > 0 ? " + " + dernierDevis.marquagesNoms.join(", ") : "");
-  doc.text(articleText, 20, tableStartY + rowHeight);
-  doc.text(String(dernierDevis.quantite), 110, tableStartY + rowHeight);
-  doc.text(dernierDevis.prixUnitaireHT.toFixed(2), 170, tableStartY + rowHeight, null, null, "right");
-  doc.text(dernierDevis.totalHT.toFixed(2), 195, tableStartY + rowHeight, null, null, "right");
-
-  // Totaux
-  let currentY = tableStartY + rowHeight + 15;
-  doc.setFont("helvetica", "bold");
-  doc.text(`TVA (20%) :`, 150, currentY);
-  doc.text(dernierDevis.totalTVA.toFixed(2), 195, currentY, null, null, "right");
-  currentY += 8;
-  doc.text(`Total TTC :`, 150, currentY);
-  doc.text(dernierDevis.totalTTC.toFixed(2), 195, currentY, null, null, "right");
-
-  // --- Pied de page ---
-  doc.setFontSize(10);
-  doc.setTextColor("gray");
-  doc.text("ALTICONCEPTION - www.alticonception.fr - contact@alticonception.fr", 105, 285, null, null, "center");
-
-  // Sauvegarder le PDF
-  doc.save(`Devis_ALTICONCEPTION_${dernierDevis.numeroDevis}.pdf`);
+      doc.save(`Devis_ALTICONCEPTION_${dernierDevis.numeroDevis}.pdf`);
     }
   </script>
 </body>
