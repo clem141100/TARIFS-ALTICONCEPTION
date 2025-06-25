@@ -218,7 +218,7 @@
               <button data-value="3.50" data-name="Manche longue droite Sérigraphie">Manche longue droite</button>
               <button data-value="3.50" data-name="Manche longue gauche Sérigraphie">Manche longue gauche</button>
             </div>
-    	   <div class="marquage-buttons-patch-brode hidden">
+            <div class="marquage-buttons-patch-brode hidden">
               <button data-value="2.00" data-name="Cœur Patch brodé">Cœur</button>
               <button data-value="2.00" data-name="Opposé au cœur Patch brodé">Opposé au cœur</button>
               <button data-value="3.50" data-name="Haut dos Patch brodé">Haut dos</button>
@@ -229,7 +229,7 @@
             <div class="marquage-buttons-broderie hidden">
               <button data-value="11.50" data-name="Coeur Broderie">Coeur</button>
               <button data-value="16.50" data-name="Haut du dos Broderie">Haut du dos</button>
-	      <button data-value="15.00" data-name="Couvre chef avant Broderie">Couvre chef avant</button>
+              <button data-value="15.00" data-name="Couvre chef avant Broderie">Couvre chef avant</button>
             </div>
           </div>
         </div>
@@ -251,11 +251,12 @@
   <script>
     const { jsPDF } = window.jspdf;
 
-    function showMarquageButtons(category) {
-      document.querySelectorAll('.marquage-buttons > div').forEach(div => {
+    function showMarquageButtons(category, articleElement) {
+      const marquageButtons = articleElement.querySelectorAll('.marquage-buttons > div');
+      marquageButtons.forEach(div => {
         div.classList.add('hidden');
       });
-      document.querySelector(`.marquage-buttons-${category}`).classList.remove('hidden');
+      articleElement.querySelector(`.marquage-buttons-${category}`).classList.remove('hidden');
     }
 
     function ajouterArticle() {
@@ -302,6 +303,7 @@
             <button data-category="dtf" class="selected">DTF</button>
             <button data-category="serigraphie">Sérigraphie</button>
             <button data-category="broderie">Broderie</button>
+            <button data-category="patch-brode">Patch brodé</button>
           </div>
         </div>
         <div class="form-group">
@@ -317,21 +319,32 @@
               <button data-value="4.00" data-name="Manche gauche DTF">Manche gauche</button>
               <button data-value="5.00" data-name="Manche longue droite DTF">Manche longue droite</button>
               <button data-value="5.00" data-name="Manche longue gauche DTF">Manche longue gauche</button>
+              <button data-value="5.00" data-name="Couvre chef avant DTF">Couvre chef avant</button>
+              <button data-value="5.00" data-name="Couvre chef latéral DTF">Couvre chef latéral</button>
             </div>
             <div class="marquage-buttons-serigraphie hidden">
-              <button data-value="4.00" data-name="Cœur Sérigraphie">Cœur</button>
-              <button data-value="4.00" data-name="Opposé au cœur Sérigraphie">Opposé au cœur</button>
-              <button data-value="6.50" data-name="Centre torse Sérigraphie">Centre torse</button>
-              <button data-value="4.50" data-name="Haut dos Sérigraphie">Haut dos</button>
-              <button data-value="6.50" data-name="Centre dos Sérigraphie">Centre dos</button>
-              <button data-value="4.00" data-name="Manche droite Sérigraphie">Manche droite</button>
-              <button data-value="4.00" data-name="Manche gauche Sérigraphie">Manche gauche</button>
-              <button data-value="5.00" data-name="Manche longue droite Sérigraphie">Manche longue droite</button>
-              <button data-value="5.00" data-name="Manche longue gauche Sérigraphie">Manche longue gauche</button>
+              <button data-value="2.00" data-name="Cœur Sérigraphie">Cœur</button>
+              <button data-value="2.00" data-name="Opposé au cœur Sérigraphie">Opposé au cœur</button>
+              <button data-value="4.50" data-name="Centre torse Sérigraphie">Centre torse</button>
+              <button data-value="3.50" data-name="Haut dos Sérigraphie">Haut dos</button>
+              <button data-value="4.50" data-name="Centre dos Sérigraphie">Centre dos</button>
+              <button data-value="2.50" data-name="Manche droite Sérigraphie">Manche droite</button>
+              <button data-value="2.50" data-name="Manche gauche Sérigraphie">Manche gauche</button>
+              <button data-value="3.50" data-name="Manche longue droite Sérigraphie">Manche longue droite</button>
+              <button data-value="3.50" data-name="Manche longue gauche Sérigraphie">Manche longue gauche</button>
+            </div>
+            <div class="marquage-buttons-patch-brode hidden">
+              <button data-value="2.00" data-name="Cœur Patch brodé">Cœur</button>
+              <button data-value="2.00" data-name="Opposé au cœur Patch brodé">Opposé au cœur</button>
+              <button data-value="3.50" data-name="Haut dos Patch brodé">Haut dos</button>
+              <button data-value="2.50" data-name="Manche droite Patch brodé">Manche droite</button>
+              <button data-value="2.50" data-name="Manche gauche Patch brodé">Manche gauche</button>
+              <button data-value="15.00" data-name="Couvre chef avant Patch brodé">Couvre chef avant</button>
             </div>
             <div class="marquage-buttons-broderie hidden">
               <button data-value="11.50" data-name="Coeur Broderie">Coeur</button>
               <button data-value="16.50" data-name="Haut du dos Broderie">Haut du dos</button>
+              <button data-value="15.00" data-name="Couvre chef avant Broderie">Couvre chef avant</button>
             </div>
           </div>
         </div>
@@ -344,13 +357,12 @@
       `;
       container.appendChild(newArticle);
 
-      // Ajouter les événements aux boutons de marquage du nouvel article
       const categoryButtons = newArticle.querySelectorAll('.marquage-category-buttons button');
       categoryButtons.forEach(btn => {
-        btn.addEventListener("click", () => {
+        btn.addEventListener("click", function() {
           categoryButtons.forEach(b => b.classList.remove("selected"));
           btn.classList.add("selected");
-          showMarquageButtons(btn.dataset.category);
+          showMarquageButtons(btn.dataset.category, newArticle);
         });
       });
 
@@ -372,7 +384,8 @@
       btn.addEventListener("click", () => {
         categoryButtons.forEach(b => b.classList.remove("selected"));
         btn.classList.add("selected");
-        showMarquageButtons(btn.dataset.category);
+        const article = btn.closest('.article');
+        showMarquageButtons(btn.dataset.category, article);
       });
     });
 
@@ -416,45 +429,49 @@
         alert("Merci d'entrer le nom du client.");
         return;
       }
+
       const articles = document.querySelectorAll('.article');
       let totalHT = 0;
       let totalTVA = 0;
       let totalTTC = 0;
       let details = [];
+
       articles.forEach(article => {
         const articleSelect = article.querySelector('.article-select');
         const articlePrixHT = parseFloat(articleSelect.value);
         const articleNom = articleSelect.options[articleSelect.selectedIndex].dataset.name;
         const quantite = parseInt(article.querySelector('.quantite').value);
+
         if (quantite < 1 || isNaN(quantite)) {
           alert("La quantité doit être au moins 1.");
           return;
         }
+
         const marquages = article.querySelectorAll('.marquage-buttons button.selected');
         let totalMarquagesHT = 0;
         let marquagesNoms = [];
+
         marquages.forEach(m => {
           totalMarquagesHT += parseFloat(m.dataset.value);
           marquagesNoms.push(m.dataset.name);
         });
+
         const nombreMarquages = marquagesNoms.length;
         const prixUnitaireSansRemise = articlePrixHT + totalMarquagesHT;
-        // Calcul remises cumulées
         const remiseQuantite = getRemiseQuantite(quantite);
         const remiseMarquages = getRemiseMarquages(nombreMarquages);
-        // Cumul des remises
         const remiseTotale = remiseQuantite + remiseMarquages;
-        // Appliquer remise cumulée (par exemple 3% + 5% = 8%)
-        // Le prix unitaire avec remise
         const prixUnitaireHT = prixUnitaireSansRemise * (1 - remiseTotale);
         const prixUnitaireTTC = prixUnitaireHT * 1.20;
         const TVA = 0.20;
         const totalHTArticle = prixUnitaireHT * quantite;
         const totalTVAArticle = totalHTArticle * TVA;
         const totalTTCArticle = totalHTArticle + totalTVAArticle;
+
         totalHT += totalHTArticle;
         totalTVA += totalTVAArticle;
         totalTTC += totalTTCArticle;
+
         details.push({
           articleNom,
           quantite,
@@ -465,16 +482,17 @@
           totalTVAArticle,
           totalTTCArticle
         });
-        // Afficher le prix unitaire HT et TTC pour chaque article
+
         const articleResult = article.querySelector('.article-result');
         articleResult.innerHTML = `
           Prix unitaire HT : <strong>${prixUnitaireHT.toFixed(2)} €</strong><br>
           Prix unitaire TTC : <strong>${prixUnitaireTTC.toFixed(2)} €</strong>
         `;
       });
-      // Récupérer mail et téléphone (facultatifs)
+
       const clientEmail = document.getElementById("clientEmail").value.trim();
       const clientPhone = document.getElementById("clientPhone").value.trim();
+
       dernierDevis = {
         clientName,
         clientEmail,
@@ -487,9 +505,11 @@
         numeroDevis: genererNumeroDevis(),
         dateDevis: new Date()
       };
+
       let resultatHTML = `Prix total HT : <strong>${totalHT.toFixed(2)} €</strong>\n` +
         `TVA (20%) : <strong>${totalTVA.toFixed(2)} €</strong>\n` +
         `Total TTC : <strong>${totalTTC.toFixed(2)} €</strong>`;
+
       document.getElementById("resultat").innerHTML = resultatHTML;
       document.getElementById("download-pdf").style.display = "block";
     }
@@ -499,48 +519,53 @@
         alert("Veuillez d'abord calculer le prix.");
         return;
       }
+
       const doc = new jsPDF();
       const bleuAlticonception = "#2980b9";
       const grisClair = "#f4f6f8";
       const noir = "#2c3e50";
-      // En-tête avec fond bleu
+
       doc.setFillColor(41, 128, 185);
       doc.rect(0, 0, 210, 35, "F");
       doc.setFontSize(20);
       doc.setTextColor(255, 255, 255);
       doc.setFont("helvetica", "bold");
       doc.text("ALTICONCEPTION", 105, 22, null, null, "center");
-      // Infos devis & client
+
       doc.setFontSize(8);
       doc.setTextColor(noir);
       doc.setFont("helvetica", "normal");
       doc.text(`Devis n° : ${dernierDevis.numeroDevis}`, 15, 50);
       doc.text(`Date : ${dernierDevis.dateDevis.toLocaleDateString("fr-FR")}`, 150, 50);
       doc.text(`Client : ${dernierDevis.clientName}`, 15, 60);
+
       if (dernierDevis.clientEmail) {
         doc.text(`Email : ${dernierDevis.clientEmail}`, 15, 68);
       }
+
       if (dernierDevis.clientPhone) {
         doc.text(`Téléphone : ${dernierDevis.clientPhone}`, 15, 76);
       }
-      // Ligne séparatrice
+
       let baseY = 80;
       if (dernierDevis.clientPhone) {
         baseY = 85;
       } else if (dernierDevis.clientEmail) {
         baseY = 82;
       }
+
       doc.setDrawColor(41, 128, 185);
       doc.setLineWidth(0.8);
       doc.line(15, baseY, 195, baseY);
-      // Détail de la commande (tableau)
+
       doc.setFontSize(9);
       doc.setTextColor(bleuAlticonception);
       doc.setFont("helvetica", "bold");
       doc.text("Détail de la commande", 15, baseY + 10);
-      let startY = baseY + 18;  // augmenté un peu pour espace
+
+      let startY = baseY + 18;
       const rowHeight = 10;
-      // Entête tableau - colonnes espacées pour éviter chevauchement
+
       doc.setFillColor(grisClair);
       doc.rect(15, startY - 8, 180, rowHeight, "F");
       doc.setTextColor(noir);
@@ -550,7 +575,7 @@
       doc.text("Prix Unitaire HT (€)", 140, startY);
       doc.text("Prix Unitaire TTC (€)", 170, startY);
       doc.text("Total HT (€)", 195, startY, null, null, "right");
-      // Lignes de données
+
       doc.setFont("helvetica", "normal");
       dernierDevis.details.forEach(detail => {
         const articleText = detail.articleNom + (detail.marquagesNoms.length > 0 ? " + " + detail.marquagesNoms.join(", ") : "");
@@ -561,7 +586,7 @@
         doc.text(detail.totalHTArticle.toFixed(2), 195, startY + rowHeight, null, null, "right");
         startY += rowHeight + 5;
       });
-      // Totaux
+
       let currentY = startY + 5;
       doc.setFont("helvetica", "bold");
       doc.text(`TVA (20%) :`, 150, currentY);
@@ -569,7 +594,7 @@
       currentY += 8;
       doc.text(`Total TTC :`, 150, currentY);
       doc.text(dernierDevis.totalTTC.toFixed(2), 195, currentY, null, null, "right");
-      // Pied de page ALTICONCEPTION
+
       doc.setFontSize(10);
       doc.setTextColor("gray");
       doc.text("ALTICONCEPTION - www.alticonception.fr - contact@alticonception.fr", 105, 285, null, null, "center");
