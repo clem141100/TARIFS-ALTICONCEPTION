@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Calculateur Textile ALTICONCEPTION</title>
   <style>
     body {
@@ -237,7 +237,7 @@
           <label for="quantite">Quantité d'articles</label>
           <input type="number" class="quantite" value="1" min="1" />
         </div>
-        <div class="article-result" id="article-result"></div>
+        <div class="article-result"></div>
         <button class="delete-article" onclick="supprimerArticle(this)">Supprimer cet article</button>
       </div>
     </div>
@@ -356,7 +356,6 @@
         <button class="delete-article" onclick="supprimerArticle(this)">Supprimer cet article</button>
       `;
       container.appendChild(newArticle);
-
       const categoryButtons = newArticle.querySelectorAll('.marquage-category-buttons button');
       categoryButtons.forEach(btn => {
         btn.addEventListener("click", function() {
@@ -365,7 +364,6 @@
           showMarquageButtons(btn.dataset.category, newArticle);
         });
       });
-
       const marquageButtons = newArticle.querySelectorAll('.marquage-buttons button');
       marquageButtons.forEach(btn => {
         btn.addEventListener("click", () => {
@@ -429,33 +427,27 @@
         alert("Merci d'entrer le nom du client.");
         return;
       }
-
       const articles = document.querySelectorAll('.article');
       let totalHT = 0;
       let totalTVA = 0;
       let totalTTC = 0;
       let details = [];
-
       articles.forEach(article => {
         const articleSelect = article.querySelector('.article-select');
         const articlePrixHT = parseFloat(articleSelect.value);
         const articleNom = articleSelect.options[articleSelect.selectedIndex].dataset.name;
         const quantite = parseInt(article.querySelector('.quantite').value);
-
         if (quantite < 1 || isNaN(quantite)) {
           alert("La quantité doit être au moins 1.");
           return;
         }
-
         const marquages = article.querySelectorAll('.marquage-buttons button.selected');
         let totalMarquagesHT = 0;
         let marquagesNoms = [];
-
         marquages.forEach(m => {
           totalMarquagesHT += parseFloat(m.dataset.value);
           marquagesNoms.push(m.dataset.name);
         });
-
         const nombreMarquages = marquagesNoms.length;
         const prixUnitaireSansRemise = articlePrixHT + totalMarquagesHT;
         const remiseQuantite = getRemiseQuantite(quantite);
@@ -467,11 +459,9 @@
         const totalHTArticle = prixUnitaireHT * quantite;
         const totalTVAArticle = totalHTArticle * TVA;
         const totalTTCArticle = totalHTArticle + totalTVAArticle;
-
         totalHT += totalHTArticle;
         totalTVA += totalTVAArticle;
         totalTTC += totalTTCArticle;
-
         details.push({
           articleNom,
           quantite,
@@ -482,17 +472,14 @@
           totalTVAArticle,
           totalTTCArticle
         });
-
         const articleResult = article.querySelector('.article-result');
         articleResult.innerHTML = `
           Prix unitaire HT : <strong>${prixUnitaireHT.toFixed(2)} €</strong><br>
           Prix unitaire TTC : <strong>${prixUnitaireTTC.toFixed(2)} €</strong>
         `;
       });
-
       const clientEmail = document.getElementById("clientEmail").value.trim();
       const clientPhone = document.getElementById("clientPhone").value.trim();
-
       dernierDevis = {
         clientName,
         clientEmail,
@@ -505,11 +492,9 @@
         numeroDevis: genererNumeroDevis(),
         dateDevis: new Date()
       };
-
       let resultatHTML = `Prix total HT : <strong>${totalHT.toFixed(2)} €</strong>\n` +
         `TVA (20%) : <strong>${totalTVA.toFixed(2)} €</strong>\n` +
         `Total TTC : <strong>${totalTTC.toFixed(2)} €</strong>`;
-
       document.getElementById("resultat").innerHTML = resultatHTML;
       document.getElementById("download-pdf").style.display = "block";
     }
@@ -521,84 +506,104 @@
       }
 
       const doc = new jsPDF();
-      const bleuAlticonception = "#2980b9";
-      const grisClair = "#f4f6f8";
-      const noir = "#2c3e50";
 
-      doc.setFillColor(41, 128, 185);
-      doc.rect(0, 0, 210, 35, "F");
-      doc.setFontSize(20);
+      // Header
+      doc.setFillColor(16, 98, 97);
+      doc.roundedRect(10, 10, 190, 30, 3, 3, "F");
+      doc.setFontSize(16);
       doc.setTextColor(255, 255, 255);
       doc.setFont("helvetica", "bold");
-      doc.text("ALTICONCEPTION", 105, 22, null, null, "center");
+      doc.text("DEVIS", 20, 25);
+      doc.setFontSize(12);
+      doc.text(`N° ${dernierDevis.numeroDevis}`, 20, 35);
+      doc.text(`Date: ${dernierDevis.dateDevis.toLocaleDateString("fr-FR")}`, 100, 25);
+      doc.text(`Valide jusqu'au: ${new Date(dernierDevis.dateDevis.setMonth(dernierDevis.dateDevis.getMonth() + 1)).toLocaleDateString("fr-FR")}`, 100, 35);
 
-      doc.setFontSize(8);
-      doc.setTextColor(noir);
+      // Company and Client Info
+      doc.setFontSize(10);
+      doc.setTextColor(0, 0, 0);
       doc.setFont("helvetica", "normal");
-      doc.text(`Devis n° : ${dernierDevis.numeroDevis}`, 15, 50);
-      doc.text(`Date : ${dernierDevis.dateDevis.toLocaleDateString("fr-FR")}`, 150, 50);
-      doc.text(`Client : ${dernierDevis.clientName}`, 15, 60);
 
+      // Company Info
+      doc.roundedRect(10, 50, 90, 40, 3, 3, "S");
+      doc.text("ALTICONCEPTION", 15, 57);
+      doc.text("By Novacom", 15, 62);
+      doc.text("Route de la salaison", 15, 68);
+      doc.text("43 290 Raucoules", 15, 74);
+      doc.text("Tél: +33 7 79 82 42 02 - +33 6 19 63 63 52", 15, 80);
+      doc.text("Email: contact@alticonception-pro.fr", 15, 86);
+
+      // Client Info
+      doc.roundedRect(110, 50, 90, 40, 3, 3, "S");
+      doc.text(dernierDevis.clientName, 115, 58);
       if (dernierDevis.clientEmail) {
-        doc.text(`Email : ${dernierDevis.clientEmail}`, 15, 68);
+        doc.text(dernierDevis.clientEmail, 115, 65);
       }
-
       if (dernierDevis.clientPhone) {
-        doc.text(`Téléphone : ${dernierDevis.clientPhone}`, 15, 76);
+        doc.text(dernierDevis.clientPhone, 115, 72);
       }
 
-      let baseY = 80;
-      if (dernierDevis.clientPhone) {
-        baseY = 85;
-      } else if (dernierDevis.clientEmail) {
-        baseY = 82;
-      }
+      // Table Header
+      doc.setFontSize(10);
+      doc.setFillColor(16, 98, 97);
+      doc.roundedRect(10, 100, 190, 10, 3, 3, "F");
+      doc.setTextColor(255, 255, 255);
+      doc.text("Description", 20, 107);
+      doc.text("Prix unitaire", 105, 107);
+      doc.text("Quantité", 145, 107);
+      doc.text("Total", 175, 107);
 
-      doc.setDrawColor(41, 128, 185);
-      doc.setLineWidth(0.8);
-      doc.line(15, baseY, 195, baseY);
-
-      doc.setFontSize(9);
-      doc.setTextColor(bleuAlticonception);
-      doc.setFont("helvetica", "bold");
-      doc.text("Détail de la commande", 15, baseY + 10);
-
-      let startY = baseY + 18;
-      const rowHeight = 10;
-
-      doc.setFillColor(grisClair);
-      doc.rect(15, startY - 8, 180, rowHeight, "F");
-      doc.setTextColor(noir);
-      doc.setFont("helvetica", "bold");
-      doc.text("Article", 20, startY);
-      doc.text("Qté", 110, startY);
-      doc.text("Prix Unitaire HT (€)", 140, startY);
-      doc.text("Prix Unitaire TTC (€)", 170, startY);
-      doc.text("Total HT (€)", 195, startY, null, null, "right");
-
+      // Table Content
+      doc.setTextColor(0, 0, 0);
       doc.setFont("helvetica", "normal");
+      let startY = 115;
       dernierDevis.details.forEach(detail => {
-        const articleText = detail.articleNom + (detail.marquagesNoms.length > 0 ? " + " + detail.marquagesNoms.join(", ") : "");
-        doc.text(articleText, 20, startY + rowHeight);
-        doc.text(String(detail.quantite), 110, startY + rowHeight);
-        doc.text(detail.prixUnitaireHT.toFixed(2), 150, startY + rowHeight, null, null, "right");
-        doc.text(detail.prixUnitaireTTC.toFixed(2), 175, startY + rowHeight, null, null, "right");
-        doc.text(detail.totalHTArticle.toFixed(2), 195, startY + rowHeight, null, null, "right");
-        startY += rowHeight + 5;
+        doc.text(detail.articleNom, 20, startY);
+        doc.text(`${detail.prixUnitaireHT.toFixed(2)} €`, 105, startY);
+        doc.text(detail.quantite.toString(), 145, startY);
+        doc.text(`${detail.totalHTArticle.toFixed(2)} €`, 175, startY);
+
+        // Technique de marquage
+        doc.text(`Technique: ${detail.marquagesNoms.join(", ")}`, 20, startY + 5);
+
+        startY += 15;
       });
 
-      let currentY = startY + 5;
+      // Total
       doc.setFont("helvetica", "bold");
-      doc.text(`TVA (20%) :`, 150, currentY);
-      doc.text(dernierDevis.totalTVA.toFixed(2), 195, currentY, null, null, "right");
-      currentY += 8;
-      doc.text(`Total TTC :`, 150, currentY);
-      doc.text(dernierDevis.totalTTC.toFixed(2), 195, currentY, null, null, "right");
+      doc.text(`Total HT: ${dernierDevis.totalHT.toFixed(2)} €`, 140, startY + 10);
+      doc.text(`TVA (20%): ${dernierDevis.totalTVA.toFixed(2)} €`, 140, startY + 20);
+      doc.text(`Total TTC: ${dernierDevis.totalTTC.toFixed(2)} €`, 140, startY + 30);
 
-      doc.setFontSize(10);
-      doc.setTextColor("gray");
-      doc.text("ALTICONCEPTION - www.alticonception.fr - contact@alticonception.fr", 105, 285, null, null, "center");
-      doc.save(`Devis_ALTICONCEPTION_${dernierDevis.numeroDevis}.pdf`);
+      // Payment Conditions
+      doc.roundedRect(10, startY + 40, 90, 30, 3, 3, "S");
+      doc.setFontSize(8);
+      doc.text("Conditions de paiement:", 15, startY + 48);
+      doc.text("50% à la commande, solde avant livraison.", 15, startY + 55);
+
+      // Signature
+      doc.roundedRect(110, startY + 40, 90, 30, 3, 3, "S");
+      doc.text("Signature:", 115, startY + 48);
+
+      // Company Full Info
+      doc.setFontSize(8);
+      const pageWidth = doc.internal.pageSize.getWidth();
+const pageHeight = doc.internal.pageSize.getHeight();
+
+const ligne1 = "NOVACOM - 21 rue de la salaison 43290 RAUCOULES FRANCE - Email : mathieuchaudierpro@gmail.com";
+const ligne2 = "Code NAF (APE) 7311Z - EURL au capital social de 0 € - Siret : 92839631600012";
+
+const bottomMargin = 10;
+const footerY1 = pageHeight - bottomMargin - 5;
+const footerY2 = pageHeight - bottomMargin;
+
+doc.setFontSize(8);
+doc.setTextColor(100); // gris doux
+
+doc.text(ligne1, pageWidth / 2, footerY1, { align: "center" });
+doc.text(ligne2, pageWidth / 2, footerY2, { align: "center" });
+
+      doc.save(`Devis_${dernierDevis.numeroDevis}.pdf`);
     }
   </script>
 </body>
