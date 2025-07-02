@@ -147,6 +147,10 @@
       <label for="clientPhone">Téléphone (facultatif)</label>
       <input type="tel" id="clientPhone" placeholder="Entrez le numéro de téléphone" />
     </div>
+    <div class="form-group">
+      <label for="clientAddress">Adresse (facultatif)</label>
+      <input type="text" id="clientAddress" placeholder="Entrez l'adresse" />
+    </div>
     <div id="articles-container">
       <div class="article">
         <div class="form-group">
@@ -181,6 +185,10 @@
             <option value="9.00" data-name="Casquette Standard 594">Casquette Standard 594</option>
             <option value="8.50" data-name="Casquette enfant 8811">Casquette enfant 8811</option>
           </select>
+        </div>
+        <div class="form-group">
+          <label for="color">Couleur</label>
+          <input type="text" class="color" placeholder="Entrez la couleur" />
         </div>
         <div class="form-group">
           <label>Catégorie de Marquage</label>
@@ -250,7 +258,6 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script>
     const { jsPDF } = window.jspdf;
-
     function showMarquageButtons(category, articleElement) {
       const marquageButtons = articleElement.querySelectorAll('.marquage-buttons > div');
       marquageButtons.forEach(div => {
@@ -258,7 +265,6 @@
       });
       articleElement.querySelector(`.marquage-buttons-${category}`).classList.remove('hidden');
     }
-
     function ajouterArticle() {
       const container = document.getElementById('articles-container');
       const newArticle = document.createElement('div');
@@ -296,6 +302,10 @@
             <option value="9.00" data-name="Casquette Standard 594">Casquette Standard 594</option>
             <option value="8.50" data-name="Casquette enfant 8811">Casquette enfant 8811</option>
           </select>
+        </div>
+        <div class="form-group">
+          <label for="color">Couleur</label>
+          <input type="text" class="color" placeholder="Entrez la couleur" />
         </div>
         <div class="form-group">
           <label>Catégorie de Marquage</label>
@@ -371,12 +381,10 @@
         });
       });
     }
-
     function supprimerArticle(button) {
       const article = button.parentElement;
       article.parentElement.removeChild(article);
     }
-
     const categoryButtons = document.querySelectorAll('.marquage-category-buttons button');
     categoryButtons.forEach(btn => {
       btn.addEventListener("click", () => {
@@ -386,21 +394,17 @@
         showMarquageButtons(btn.dataset.category, article);
       });
     });
-
     const marquageButtons = document.querySelectorAll(".marquage-buttons button");
     marquageButtons.forEach(btn => {
       btn.addEventListener("click", () => {
         btn.classList.toggle("selected");
       });
     });
-
     let dernierDevis = null;
-
     function genererNumeroDevis() {
       const now = new Date();
       return 'ALT-' + now.getFullYear() + '-' + now.getTime().toString().slice(-6);
     }
-
     function getRemiseQuantite(qte) {
       if (qte >= 250) return 0.20;
       if (qte >= 100) return 0.15;
@@ -409,7 +413,6 @@
       if (qte >= 5) return 0.03;
       return 0;
     }
-
     function getRemiseMarquages(n) {
       switch(n) {
         case 5: return 0.15;
@@ -420,7 +423,6 @@
         default: return 0;
       }
     }
-
     function calculerPrix() {
       const clientName = document.getElementById("clientName").value.trim();
       if (!clientName) {
@@ -437,6 +439,7 @@
         const articlePrixHT = parseFloat(articleSelect.value);
         const articleNom = articleSelect.options[articleSelect.selectedIndex].dataset.name;
         const quantite = parseInt(article.querySelector('.quantite').value);
+        const color = article.querySelector('.color').value;
         if (quantite < 1 || isNaN(quantite)) {
           alert("La quantité doit être au moins 1.");
           return;
@@ -465,6 +468,7 @@
         details.push({
           articleNom,
           quantite,
+          color,
           marquagesNoms,
           prixUnitaireHT,
           prixUnitaireTTC,
@@ -480,10 +484,12 @@
       });
       const clientEmail = document.getElementById("clientEmail").value.trim();
       const clientPhone = document.getElementById("clientPhone").value.trim();
+      const clientAddress = document.getElementById("clientAddress").value.trim();
       dernierDevis = {
         clientName,
         clientEmail,
         clientPhone,
+        clientAddress,
         details,
         totalHT,
         TVA: 0.20,
@@ -498,15 +504,12 @@
       document.getElementById("resultat").innerHTML = resultatHTML;
       document.getElementById("download-pdf").style.display = "block";
     }
-
     function telechargerPDF() {
       if (!dernierDevis) {
         alert("Veuillez d'abord calculer le prix.");
         return;
       }
-
       const doc = new jsPDF();
-
       // Header
       doc.setFillColor(16, 98, 97);
       doc.roundedRect(10, 10, 190, 30, 3, 3, "F");
@@ -518,12 +521,10 @@
       doc.text(`N° ${dernierDevis.numeroDevis}`, 20, 35);
       doc.text(`Date: ${dernierDevis.dateDevis.toLocaleDateString("fr-FR")}`, 100, 25);
       doc.text(`Valide jusqu'au: ${new Date(dernierDevis.dateDevis.setMonth(dernierDevis.dateDevis.getMonth() + 1)).toLocaleDateString("fr-FR")}`, 100, 35);
-
       // Company and Client Info
       doc.setFontSize(10);
       doc.setTextColor(0, 0, 0);
       doc.setFont("helvetica", "normal");
-
       // Company Info
       doc.roundedRect(10, 50, 90, 40, 3, 3, "S");
       doc.text("ALTICONCEPTION", 15, 57);
@@ -532,7 +533,6 @@
       doc.text("43 290 Raucoules", 15, 74);
       doc.text("Tél: +33 7 79 82 42 02 - +33 6 19 63 63 52", 15, 80);
       doc.text("Email: contact@alticonception-pro.fr", 15, 86);
-
       // Client Info
       doc.roundedRect(110, 50, 90, 40, 3, 3, "S");
       doc.text(dernierDevis.clientName, 115, 58);
@@ -542,7 +542,9 @@
       if (dernierDevis.clientPhone) {
         doc.text(dernierDevis.clientPhone, 115, 72);
       }
-
+      if (dernierDevis.clientAddress) {
+        doc.text(dernierDevis.clientAddress, 115, 79);
+      }
       // Table Header
       doc.setFontSize(10);
       doc.setFillColor(16, 98, 97);
@@ -552,7 +554,6 @@
       doc.text("PU HT(€)", 105, 107);
       doc.text("Quantité", 145, 107);
       doc.text("Total", 175, 107);
-
       // Table Content
       doc.setTextColor(0, 0, 0);
       doc.setFont("helvetica", "normal");
@@ -562,47 +563,38 @@
         doc.text(`${detail.prixUnitaireHT.toFixed(2)} €`, 105, startY);
         doc.text(detail.quantite.toString(), 145, startY);
         doc.text(`${detail.totalHTArticle.toFixed(2)} €`, 175, startY);
-
         // Technique de marquage
         doc.text(`Technique: ${detail.marquagesNoms.join(", ")}`, 20, startY + 5);
-
-        startY += 15;
+        // Couleur
+        doc.text(`Couleur: ${detail.color}`, 20, startY + 10);
+        startY += 20;
       });
-
       // Total
       doc.setFont("helvetica", "bold");
       doc.text(`Total HT: ${dernierDevis.totalHT.toFixed(2)} €`, 140, startY + 10);
       doc.text(`TVA (20%): ${dernierDevis.totalTVA.toFixed(2)} €`, 140, startY + 20);
       doc.text(`Total TTC: ${dernierDevis.totalTTC.toFixed(2)} €`, 140, startY + 30);
-
       // Payment Conditions
       doc.roundedRect(10, startY + 40, 90, 30, 3, 3, "S");
       doc.setFontSize(8);
       doc.text("Conditions de paiement:", 15, startY + 48);
       doc.text("30% d'acompte à la commande, solde à la livraison", 15, startY + 55);
-
       // Signature
       doc.roundedRect(110, startY + 40, 90, 30, 3, 3, "S");
       doc.text("Signature:", 115, startY + 48);
-
       // Company Full Info
       doc.setFontSize(8);
       const pageWidth = doc.internal.pageSize.getWidth();
-const pageHeight = doc.internal.pageSize.getHeight();
-
-const ligne1 = "NOVACOM - 21 rue de la salaison 43290 RAUCOULES FRANCE - Email : mathieuchaudierpro@gmail.com";
-const ligne2 = "Code NAF (APE) 7311Z - EURL au capital social de 0 € - Siret : 92839631600012";
-
-const bottomMargin = 10;
-const footerY1 = pageHeight - bottomMargin - 5;
-const footerY2 = pageHeight - bottomMargin;
-
-doc.setFontSize(8);
-doc.setTextColor(100); // gris doux
-
-doc.text(ligne1, pageWidth / 2, footerY1, { align: "center" });
-doc.text(ligne2, pageWidth / 2, footerY2, { align: "center" });
-
+      const pageHeight = doc.internal.pageSize.getHeight();
+      const ligne1 = "NOVACOM - 21 rue de la salaison 43290 RAUCOULES FRANCE - Email : mathieuchaudierpro@gmail.com";
+      const ligne2 = "Code NAF (APE) 7311Z - EURL au capital social de 0 € - Siret : 92839631600012";
+      const bottomMargin = 10;
+      const footerY1 = pageHeight - bottomMargin - 5;
+      const footerY2 = pageHeight - bottomMargin;
+      doc.setFontSize(8);
+      doc.setTextColor(100); // gris doux
+      doc.text(ligne1, pageWidth / 2, footerY1, { align: "center" });
+      doc.text(ligne2, pageWidth / 2, footerY2, { align: "center" });
       doc.save(`Devis_${dernierDevis.numeroDevis}.pdf`);
     }
   </script>
