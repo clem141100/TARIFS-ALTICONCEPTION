@@ -81,7 +81,7 @@
       color: white;
       border-color: #1c5980;
     }
-    button.calculate, button#download-pdf, button#add-article, button.delete-article {
+    button.calculate, button#download-pdf, button#add-article, button.delete-article, button#download-invoice {
       background-color: #2980b9;
       color: white;
       padding: 12px 20px;
@@ -93,7 +93,7 @@
       margin-top: 10px;
       transition: background-color 0.3s, transform 0.2s;
     }
-    button.calculate:hover, button#download-pdf:hover, button#add-article:hover, button.delete-article:hover {
+    button.calculate:hover, button#download-pdf:hover, button#add-article:hover, button.delete-article:hover, button#download-invoice:hover {
       background-color: #1c5980;
       transform: scale(1.05);
     }
@@ -253,6 +253,7 @@
     <button class="calculate" onclick="calculerPrix()">🧮 Calculer le prix</button>
     <div class="result" id="resultat"></div>
     <button id="download-pdf" style="display:none;" onclick="telechargerPDF()">⬇️ Télécharger le devis PDF</button>
+    <button id="download-invoice" style="display:none;" onclick="telechargerFacture()">⬇️ Télécharger la facture PDF</button>
   </div>
   <!-- jsPDF CDN -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -503,6 +504,7 @@
         `Total TTC : <strong>${totalTTC.toFixed(2)} €</strong>`;
       document.getElementById("resultat").innerHTML = resultatHTML;
       document.getElementById("download-pdf").style.display = "block";
+      document.getElementById("download-invoice").style.display = "block";
     }
     function telechargerPDF() {
       if (!dernierDevis) {
@@ -596,6 +598,91 @@
       doc.text(ligne1, pageWidth / 2, footerY1, { align: "center" });
       doc.text(ligne2, pageWidth / 2, footerY2, { align: "center" });
       doc.save(`Devis_${dernierDevis.numeroDevis}.pdf`);
+    }
+
+    function telechargerFacture() {
+      if (!dernierDevis) {
+        alert("Veuillez d'abord calculer le prix.");
+        return;
+      }
+      const doc = new jsPDF();
+      // Header
+      doc.setFillColor(16, 98, 97);
+      doc.roundedRect(10, 10, 190, 30, 3, 3, "F");
+      doc.setFontSize(16);
+      doc.setTextColor(255, 255, 255);
+      doc.setFont("helvetica", "bold");
+      doc.text("FACTURE", 20, 25);
+      doc.setFontSize(12);
+      doc.text(`N° ${dernierDevis.numeroDevis}`, 20, 35);
+      doc.text(`Date: ${dernierDevis.dateDevis.toLocaleDateString("fr-FR")}`, 100, 25);
+      // Company and Client Info
+      doc.setFontSize(10);
+      doc.setTextColor(0, 0, 0);
+      doc.setFont("helvetica", "normal");
+      // Company Info
+      doc.roundedRect(10, 50, 90, 40, 3, 3, "S");
+      doc.text("ALTICONCEPTION", 15, 57);
+      doc.text("By Novacom", 15, 62);
+      doc.text("Route de la salaison", 15, 68);
+      doc.text("43 290 Raucoules", 15, 74);
+      doc.text("Tél: +33 7 79 82 42 02 - +33 6 19 63 63 52", 15, 80);
+      doc.text("Email: contact@alticonception-pro.fr", 15, 86);
+      // Client Info
+      doc.roundedRect(110, 50, 90, 40, 3, 3, "S");
+      doc.text(dernierDevis.clientName, 115, 58);
+      if (dernierDevis.clientEmail) {
+        doc.text(dernierDevis.clientEmail, 115, 65);
+      }
+      if (dernierDevis.clientPhone) {
+        doc.text(dernierDevis.clientPhone, 115, 72);
+      }
+      if (dernierDevis.clientAddress) {
+        doc.text(dernierDevis.clientAddress, 115, 79);
+      }
+      // Table Header
+      doc.setFontSize(10);
+      doc.setFillColor(16, 98, 97);
+      doc.roundedRect(10, 100, 190, 10, 3, 3, "F");
+      doc.setTextColor(255, 255, 255);
+      doc.text("Description", 20, 107);
+      doc.text("PU HT(€)", 105, 107);
+      doc.text("Quantité", 145, 107);
+      doc.text("Total", 175, 107);
+      // Table Content
+      doc.setTextColor(0, 0, 0);
+      doc.setFont("helvetica", "normal");
+      let startY = 115;
+      dernierDevis.details.forEach(detail => {
+        doc.text(detail.articleNom, 20, startY);
+        doc.text(`${detail.prixUnitaireHT.toFixed(2)} €`, 105, startY);
+        doc.text(detail.quantite.toString(), 145, startY);
+        doc.text(`${detail.totalHTArticle.toFixed(2)} €`, 175, startY);
+        // Technique de marquage
+        doc.text(`Technique: ${detail.marquagesNoms.join(", ")}`, 20, startY + 5);
+        // Couleur
+        doc.text(`Couleur: ${detail.color}`, 20, startY + 10);
+        startY += 20;
+      });
+      // Total
+      doc.setFont("helvetica", "bold");
+      doc.text(`Total HT: ${dernierDevis.totalHT.toFixed(2)} €`, 140, startY + 10);
+      doc.text(`TVA (20%): ${dernierDevis.totalTVA.toFixed(2)} €`, 140, startY + 20);
+      doc.text(`Total TTC: ${dernierDevis.totalTTC.toFixed(2)} €`, 140, startY + 30);
+      // Company Full Info
+      doc.setFontSize(8);
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const pageHeight = doc.internal.pageSize.getHeight();
+      const ligne1 = "NOVACOM - 21 rue de la salaison 43290 RAUCOULES FRANCE - Email : mathieuchaudierpro@gmail.com";
+      const ligne2 = "Code NAF (APE) 7311Z - EURL au capital social de 0 € - Siret : 92839631600012";
+      const bottomMargin = 10;
+      const footerY1 = pageHeight - bottomMargin - 5;
+      const footerY2 = pageHeight - bottomMargin;
+      doc.setFontSize(8);
+      doc.setTextColor(100); // gris doux
+      doc.text(ligne1, pageWidth / 2, footerY1, { align: "center" });
+      doc.text(ligne2, pageWidth / 2, footerY2, { align: "center" });
+      doc.save(`Facture_${dernierDevis.numeroDevis}.pdf`);
     }
   </script>
 </body>
