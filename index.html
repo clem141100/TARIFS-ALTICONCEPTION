@@ -184,7 +184,16 @@
             <option value="10.00" data-name="Casquette grillage 1668">Casquette grillage 1668</option>
             <option value="9.00" data-name="Casquette Standard 594">Casquette Standard 594</option>
             <option value="8.50" data-name="Casquette enfant 8811">Casquette enfant 8811</option>
+	    <option value="7.40" data-name="Bob Unisexe 04574">Bob Unisexe 04574</option>
           </select>
+        </div>
+        <div class="form-group">
+          <label for="custom-article">Nom de l'article personnalisé</label>
+          <input type="text" class="custom-article-name" placeholder="Entrez le nom de l'article" />
+        </div>
+        <div class="form-group">
+          <label for="custom-price">Prix personnalisé</label>
+          <input type="number" class="custom-article-price" placeholder="Entrez le prix" step="0.01" />
         </div>
         <div class="form-group">
           <label for="color">Couleur</label>
@@ -302,7 +311,16 @@
             <option value="10.00" data-name="Casquette grillage 1668">Casquette grillage 1668</option>
             <option value="9.00" data-name="Casquette Standard 594">Casquette Standard 594</option>
             <option value="8.50" data-name="Casquette enfant 8811">Casquette enfant 8811</option>
+	    <option value="7.40" data-name="Bob Unisexe 04574">Bob Unisexe 04574</option>
           </select>
+        </div>
+        <div class="form-group">
+          <label for="custom-article">Nom de l'article personnalisé</label>
+          <input type="text" class="custom-article-name" placeholder="Entrez le nom de l'article" />
+        </div>
+        <div class="form-group">
+          <label for="custom-price">Prix personnalisé</label>
+          <input type="number" class="custom-article-price" placeholder="Entrez le prix" step="0.01" />
         </div>
         <div class="form-group">
           <label for="color">Couleur</label>
@@ -437,8 +455,10 @@
       let details = [];
       articles.forEach(article => {
         const articleSelect = article.querySelector('.article-select');
-        const articlePrixHT = parseFloat(articleSelect.value);
-        const articleNom = articleSelect.options[articleSelect.selectedIndex].dataset.name;
+        const customArticleName = article.querySelector('.custom-article-name').value.trim();
+        const customArticlePrice = parseFloat(article.querySelector('.custom-article-price').value);
+        const articlePrixHT = !isNaN(customArticlePrice) ? customArticlePrice : parseFloat(articleSelect.value);
+        const articleNom = customArticleName || articleSelect.options[articleSelect.selectedIndex].dataset.name;
         const quantite = parseInt(article.querySelector('.quantite').value);
         const color = article.querySelector('.color').value;
         if (quantite < 1 || isNaN(quantite)) {
@@ -599,7 +619,6 @@
       doc.text(ligne2, pageWidth / 2, footerY2, { align: "center" });
       doc.save(`Devis_${dernierDevis.numeroDevis}.pdf`);
     }
-
     function telechargerFacture() {
       if (!dernierDevis) {
         alert("Veuillez d'abord calculer le prix.");
